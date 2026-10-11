@@ -1,6 +1,7 @@
 import { isLocale, type Locale } from "@vetsync/shared";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
+import "../workspace.css";
 
 export default async function LocaleLayout({
   children,

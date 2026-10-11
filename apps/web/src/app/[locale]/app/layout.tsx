@@ -34,33 +34,29 @@ export default async function AppLayout({
   ] as const;
 
   return (
-    <div>
-      <header
-        style={{
-          display: "flex",
-          gap: "1rem",
-          alignItems: "center",
-          padding: "0.75rem 1.25rem",
-          background: "#0f766e",
-          color: "white",
-        }}
-      >
-        <a href={`/${locale}/app`} style={{ color: "white", fontWeight: 700 }}>
-          {t(locale, "product")}
-        </a>
-        <nav style={{ display: "flex", gap: "0.75rem", flex: 1 }}>
-          {links.map(([path, key]) => (
-            <a key={path} href={`/${locale}/app/${path}`} style={{ color: "white" }}>
-              {t(locale, key)}
-            </a>
-          ))}
-        </nav>
-        <span>
-          {t(locale, "signedInAs")} {user.name}
-        </span>
-        <SignOut locale={locale} />
+    <div className="workspace">
+      <header className="workspace-header">
+        <div className="workspace-brand-group">
+          <a className="workspace-brand" href={`/${locale}/app`}>
+            {t(locale, "product")}
+          </a>
+          <span className="workspace-badge">{user.role}</span>
+        </div>
+        <div className="workspace-header-actions">
+          <span className="workspace-user-chip">
+            {t(locale, "signedInAs")} <strong>{user.name}</strong>
+          </span>
+          <SignOut locale={locale} />
+        </div>
       </header>
-      <div style={{ padding: "1.5rem" }}>{children}</div>
+      <nav className="workspace-nav">
+        {links.map(([path, key]) => (
+          <a key={path} href={`/${locale}/app/${path}`}>
+            {t(locale, key)}
+          </a>
+        ))}
+      </nav>
+      <div className="workspace-main">{children}</div>
     </div>
   );
 }

@@ -9,12 +9,14 @@ export default async function LoginPage({ params }: { params: Promise<{ locale: 
     notFound();
   }
   return (
-    <main style={{ maxWidth: 420, margin: "4rem auto", padding: "0 1.5rem" }}>
-      <h1>{t(locale, "signIn")}</h1>
-      <AuthForm locale={locale} mode="login" />
-      <p>
-        <a href={`/${locale}/register`}>{t(locale, "needAccount")}</a>
-      </p>
+    <main className="auth-shell">
+      <section className="card auth-card">
+        <h1>{t(locale, "signIn")}</h1>
+        <AuthForm locale={locale} mode="login" />
+        <p className="auth-switch">
+          <a href={`/${locale}/register`}>{t(locale, "needAccount")}</a>
+        </p>
+      </section>
     </main>
   );
 }

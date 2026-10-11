@@ -9,12 +9,14 @@ export default async function RegisterPage({ params }: { params: Promise<{ local
     notFound();
   }
   return (
-    <main style={{ maxWidth: 420, margin: "4rem auto", padding: "0 1.5rem" }}>
-      <h1>{t(locale, "register")}</h1>
-      <AuthForm locale={locale} mode="register" />
-      <p>
-        <a href={`/${locale}/login`}>{t(locale, "haveAccount")}</a>
-      </p>
+    <main className="auth-shell">
+      <section className="card auth-card">
+        <h1>{t(locale, "register")}</h1>
+        <AuthForm locale={locale} mode="register" />
+        <p className="auth-switch">
+          <a href={`/${locale}/login`}>{t(locale, "haveAccount")}</a>
+        </p>
+      </section>
     </main>
   );
 }

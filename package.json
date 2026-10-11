@@ -6,6 +6,7 @@
     "packages/*"
   ],
   "scripts": {
+    "docker:up": "docker compose up -d --build",
     "dev": "turbo dev",
     "build": "turbo build",
     "typecheck": "turbo typecheck",

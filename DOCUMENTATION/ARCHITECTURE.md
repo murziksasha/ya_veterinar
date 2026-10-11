@@ -24,7 +24,7 @@ When the trial end is in the past and the plan is still `trial`, clinical writes
 | CRM | `/clients`, `/patients` |
 | Medical records | `POST /patients/:id/records` |
 | Vaccinations | `POST /patients/:id/vaccinations`, `GET /vaccinations/due` |
-| Calendar | `/appointments` |
+| Calendar and visit board | `/appointments`, `PATCH /appointments/:id` |
 | Inventory | `/inventory`, `POST /inventory/:id/movements` |
 | Subscription billing | `/billing/subscription` |
 | Payments | `POST /invoices`, `POST /invoices/:id/pay`, `POST /invoices/:id/void` |
@@ -42,4 +42,14 @@ Adapters build the provider payload and a signature from `STRIPE_SECRET`, `LIQPA
 
 Public booking resolves the clinic with `public_clinic_by_slug`, then creates the client, patient, and appointment inside `withTenant`. The web page is `/[locale]/book/[slug]`.
 
-Workspace pages live under `/[locale]/app`.
+Workspace pages live under `/[locale]/app`. The calendar page is a three-column board (`scheduled`, `done`, `cancelled`). Moving a card sends `PATCH /appointments/:id` with `{ status }`. Every workspace page has a print control. Print CSS hides the navigation and the forms, so the visit board, invoice list, and report cards can be printed as clinic forms.
+
+`GET /bi/overview` returns clinic counters (clients, patients, low stock, due vaccinations, paid revenue in kopiykas, scheduled visits). The reports page renders those counters as cards.
+
+## Responsive and High-Resolution (2K+) Layout
+
+Workspace CSS lives in `apps/web/src/app/workspace.css`.
+- Below 640px the header wraps and the visit board is one column.
+- From 640px the board is two columns.
+- From 1024px the section links sit in a left sidebar and the board is three columns.
+- From 1536px the main area uses wider padding so the three visit columns stay visible on a 2K display.

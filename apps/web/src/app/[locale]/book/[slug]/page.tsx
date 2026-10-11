@@ -36,19 +36,25 @@ function BookForm({ locale, slug }: { locale: Locale; slug: string }) {
   }
 
   return (
-    <main style={{ maxWidth: 480, margin: "3rem auto", padding: "0 1rem" }}>
-      <h1>{t(locale, "book")}</h1>
-      <p>{slug}</p>
-      <form onSubmit={onSubmit} style={{ display: "grid", gap: "0.5rem" }}>
-        <input name="ownerName" required placeholder={t(locale, "ownerName")} />
-        <input name="phone" placeholder={t(locale, "phone")} />
-        <input name="petName" required placeholder={t(locale, "petName")} />
-        <input name="species" required placeholder={t(locale, "species")} />
-        <input name="start" type="datetime-local" required />
-        <input name="note" placeholder={t(locale, "note")} />
-        <button type="submit">{t(locale, "book")}</button>
-      </form>
-      {message ? <p>{message}</p> : null}
+    <main style={{ maxWidth: 540, margin: "3rem auto", padding: "0 1.5rem" }}>
+      <div className="card" style={{ padding: "1.75rem" }}>
+        <h1 style={{ margin: "0 0 0.25rem", fontSize: "1.5rem" }}>{t(locale, "book")}</h1>
+        <p style={{ color: "var(--text-muted)", margin: "0 0 1.5rem", fontSize: "0.95rem" }}>{slug}</p>
+        <form onSubmit={onSubmit} className="form-grid">
+          <input name="ownerName" required placeholder={t(locale, "ownerName")} className="form-input" />
+          <input name="phone" placeholder={t(locale, "phone")} className="form-input" />
+          <input name="petName" required placeholder={t(locale, "petName")} className="form-input" />
+          <input name="species" required placeholder={t(locale, "species")} className="form-input" />
+          <input name="start" type="datetime-local" required className="form-input" />
+          <input name="note" placeholder={t(locale, "note")} className="form-input" />
+          <button type="submit" className="btn btn-primary" style={{ marginTop: "0.5rem" }}>{t(locale, "book")}</button>
+        </form>
+        {message ? (
+          <div style={{ marginTop: "1rem", padding: "0.75rem", background: "var(--primary-light)", color: "var(--primary-dark)", borderRadius: "var(--radius-sm)" }}>
+            {message}
+          </div>
+        ) : null}
+      </div>
     </main>
   );
 }
