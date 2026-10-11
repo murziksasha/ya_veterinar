@@ -1,5 +1,11 @@
-import { Soon } from "../soon";
+import { isLocale } from "@vetsync/shared";
+import { notFound } from "next/navigation";
+import { ClinicScreen } from "../screen";
 
-export default function Page({ params }: { params: Promise<{ locale: string }> }) {
-  return Soon({ params, title: "navInventory" });
+export default async function Page({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  if (!isLocale(locale)) {
+    notFound();
+  }
+  return <ClinicScreen locale={locale} screen="inventory" />;
 }

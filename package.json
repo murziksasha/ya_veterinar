@@ -10,7 +10,8 @@
     "build": "turbo build",
     "typecheck": "turbo typecheck",
     "db:migrate": "npm run db:migrate --workspace @vetsync/api",
-    "db:generate": "npm run db:generate --workspace @vetsync/api"
+    "db:generate": "npm run db:generate --workspace @vetsync/api",
+    "test": "npm run test --workspace @vetsync/api"
   },
   "devDependencies": {
     "turbo": "^2.5.6"

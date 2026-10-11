@@ -3,6 +3,7 @@ import type { AuthUser, StaffRole } from "@vetsync/shared";
 import { isStaffRole } from "@vetsync/shared";
 import { Prisma, type StaffRole as PrismaStaffRole } from "@prisma/client";
 import { randomUUID } from "crypto";
+import { slugFor } from "../clinic/text";
 import { PrismaService } from "../prisma/prisma.service";
 import { hashPassword, verifyPassword } from "./password";
 
@@ -46,20 +47,20 @@ export class AuthService {
 
     const tenantId = randomUUID();
     const passwordHash = await hashPassword(password);
+    const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
     try {
       const user = await this.prisma.$transaction(async (tx) => {
         await tx.$executeRaw`SELECT set_config('app.tenant_id', ${tenantId}, true)`;
-        await tx.tenant.create({ data: { id: tenantId, name: clinicName } });
+        await tx.tenant.create({
+          data: { id: tenantId, name: clinicName, slug: slugFor(clinicName, tenantId), trialEndsAt },
+        });
         return tx.user.create({
           data: { tenantId, email, name, passwordHash, role: "owner" },
         });
       });
       return toAuthUser(user);
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-        throw new BadRequestException("email_taken");
-      }
-      throw error;
+      rethrowPrisma(error);
     }
   }
 
@@ -86,6 +87,13 @@ export class AuthService {
     }
     return toAuthUser(user);
   }
+}
+
+export function rethrowPrisma(error: unknown): never {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+    throw new BadRequestException("email_taken");
+  }
+  throw error;
 }
 
 export function toAuthUser(user: {

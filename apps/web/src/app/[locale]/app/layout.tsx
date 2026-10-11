@@ -27,6 +27,10 @@ export default async function AppLayout({
     ["calendar", "navCalendar"],
     ["inventory", "navInventory"],
     ["vaccinations", "navVaccinations"],
+    ["billing", "navBilling"],
+    ["notifications", "navNotifications"],
+    ["reports", "navReports"],
+    ["staff", "navStaff"],
   ] as const;
 
   return (
