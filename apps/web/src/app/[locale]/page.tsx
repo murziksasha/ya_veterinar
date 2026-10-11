@@ -22,6 +22,10 @@ export default async function WorkspacePage({
       <h1>{t(localeParam, "title")}</h1>
       <p>{t(localeParam, "body")}</p>
       <p>
+        <a href={`/${localeParam}/login`}>{t(localeParam, "signIn")}</a>
+        {" · "}
+        <a href={`/${localeParam}/register`}>{t(localeParam, "register")}</a>
+        {" · "}
         <a href={`/${other}`}>{other.toUpperCase()}</a>
       </p>
       <p style={{ color: "#64748b" }}>

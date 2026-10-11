@@ -8,4 +8,8 @@ Turborepo npm workspaces.
 - The API connects as `vetsync_app` (`DATABASE_URL`). Migrations connect as the database owner (`DIRECT_URL`). The owner is a superuser in local Compose and bypasses RLS, so application queries must not use that login.
 - `apps/web` is the clinic workspace (PWA manifest, locales `uk` and `en`). It is not a marketing site. `/` redirects to `/uk`.
 
-Phase 1 modules (auth, CRM, medical records, vaccinations, calendar, basic inventory) are not implemented yet.
+Sign-in is email and password. `User.email` is unique. The session cookie is `vetsync_session` (httpOnly). The browser calls the API through the Next rewrite `/v1/*`. Login looks up the account with `auth_find_user_by_email`, a `SECURITY DEFINER` function, because the clinic id is not known yet. Registration generates the tenant id, sets `app.tenant_id` in a transaction, then inserts `Tenant` and the owner `User`.
+
+Staff roles are `owner`, `veterinarian`, and `assistant`. `GET /staff` lists the clinic. `POST /staff` and `DELETE /staff/:id` are owner-only. The signed-in owner cannot delete their own row, and the last owner cannot be removed.
+
+Workspace routes live under `/[locale]/app`. CRM, medical records, vaccinations, calendar, and inventory are still placeholders.

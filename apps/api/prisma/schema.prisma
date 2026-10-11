@@ -8,6 +8,12 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum StaffRole {
+  owner
+  veterinarian
+  assistant
+}
+
 /// A veterinary clinic. One row is one tenant.
 model Tenant {
   id        String   @id @default(cuid())
@@ -17,15 +23,17 @@ model Tenant {
   users     User[]
 }
 
-/// Staff account scoped to a single clinic.
+/// Staff account scoped to a single clinic. Email is unique so sign-in needs no clinic picker.
 model User {
-  id        String   @id @default(cuid())
-  tenantId  String
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  email     String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String    @id @default(cuid())
+  tenantId     String
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         StaffRole
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  @@unique([tenantId, email])
   @@index([tenantId])
 }
