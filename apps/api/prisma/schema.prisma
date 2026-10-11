@@ -1,0 +1,287 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum StaffRole {
+  owner
+  veterinarian
+  assistant
+}
+
+enum ClinicPlan {
+  trial
+  basic
+  pro
+}
+
+enum AppointmentStatus {
+  scheduled
+  done
+  cancelled
+}
+
+enum InvoiceKind {
+  sale
+  subscription
+}
+
+enum InvoiceStatus {
+  draft
+  paid
+  void
+}
+
+enum PaymentProviderId {
+  stripe
+  liqpay
+  monobank
+}
+
+enum FiscalProviderId {
+  checkbox
+  prro_ua
+}
+
+enum NotifyChannel {
+  telegram
+  sms
+  email
+  push
+}
+
+enum DiagnosticSource {
+  manual
+  generic_analyzer
+}
+
+/// A veterinary clinic. One row is one tenant.
+model Tenant {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  plan        ClinicPlan @default(trial)
+  trialEndsAt DateTime
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  users       User[]
+  clients     Client[]
+  patients    Patient[]
+  items       InventoryItem[]
+  invoices    Invoice[]
+}
+
+/// Staff account scoped to a single clinic. Email is unique so sign-in needs no clinic picker.
+model User {
+  id           String    @id @default(cuid())
+  tenantId     String
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         StaffRole
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([tenantId])
+}
+
+model Client {
+  id        String    @id @default(cuid())
+  tenantId  String
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String    @default("")
+  email     String    @default("")
+  note      String    @default("")
+  createdAt DateTime  @default(now())
+  patients  Patient[]
+
+  @@index([tenantId])
+}
+
+model Patient {
+  id          String           @id @default(cuid())
+  tenantId    String
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  clientId    String
+  client      Client           @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  name        String
+  species     String
+  breed       String           @default("")
+  sex         String           @default("")
+  birthDate   DateTime?
+  createdAt   DateTime         @default(now())
+  records     MedicalRecord[]
+  vaccines    Vaccination[]
+  visits      Appointment[]
+  studies     DiagnosticStudy[]
+
+  @@index([tenantId])
+  @@index([clientId])
+}
+
+model MedicalRecord {
+  id         String   @id @default(cuid())
+  tenantId   String
+  patientId  String
+  patient    Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  authorId   String
+  at         DateTime @default(now())
+  complaint  String
+  findings   String   @default("")
+  diagnosis  String   @default("")
+  treatment  String   @default("")
+
+  @@index([tenantId])
+  @@index([patientId])
+}
+
+model Vaccination {
+  id        String    @id @default(cuid())
+  tenantId  String
+  patientId String
+  patient   Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  authorId  String
+  vaccine   String
+  givenAt   DateTime
+  nextDueAt DateTime?
+  batch     String    @default("")
+
+  @@index([tenantId])
+  @@index([patientId])
+}
+
+model Appointment {
+  id        String            @id @default(cuid())
+  tenantId  String
+  patientId String
+  patient   Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  staffId   String?
+  start     DateTime
+  end       DateTime
+  status    AppointmentStatus @default(scheduled)
+  note      String            @default("")
+  source    String            @default("clinic")
+
+  @@index([tenantId, start])
+}
+
+model InventoryItem {
+  id        String          @id @default(cuid())
+  tenantId  String
+  tenant    Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  unit      String
+  quantity  Int             @default(0)
+  threshold Int             @default(0)
+  movements StockMovement[]
+
+  @@index([tenantId])
+}
+
+model StockMovement {
+  id       String        @id @default(cuid())
+  tenantId String
+  itemId   String
+  item     InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  delta    Int
+  note     String        @default("")
+  authorId String
+  at       DateTime      @default(now())
+
+  @@index([tenantId])
+  @@index([itemId])
+}
+
+model Invoice {
+  id        String        @id @default(cuid())
+  tenantId  String
+  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  kind      InvoiceKind
+  status    InvoiceStatus @default(draft)
+  plan      ClinicPlan?
+  totalKop  Int
+  createdAt DateTime      @default(now())
+  lines     InvoiceLine[]
+  payments  Payment[]
+  receipts  FiscalReceipt[]
+
+  @@index([tenantId])
+}
+
+model InvoiceLine {
+  id          String  @id @default(cuid())
+  tenantId    String
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  qty         Int
+  unitKop     Int
+
+  @@index([tenantId])
+}
+
+model Payment {
+  id         String            @id @default(cuid())
+  tenantId   String
+  invoiceId  String
+  invoice    Invoice           @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  provider   PaymentProviderId
+  externalId String
+  payload    String
+  status     String
+  createdAt  DateTime          @default(now())
+
+  @@index([tenantId])
+}
+
+model FiscalReceipt {
+  id         String           @id @default(cuid())
+  tenantId   String
+  invoiceId  String
+  invoice    Invoice          @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  provider   FiscalProviderId
+  externalId String
+  payload    String
+  status     String
+  createdAt  DateTime         @default(now())
+
+  @@index([tenantId])
+}
+
+model NotificationMessage {
+  id          String        @id @default(cuid())
+  tenantId    String
+  channel     NotifyChannel
+  destination String
+  body        String
+  payload     String        @default("")
+  status      String        @default("queued")
+  createdAt   DateTime      @default(now())
+
+  @@index([tenantId])
+}
+
+model DiagnosticStudy {
+  id         String           @id @default(cuid())
+  tenantId   String
+  patientId  String
+  patient    Patient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  source     DiagnosticSource
+  title      String
+  modality   String           @default("")
+  fileName   String           @default("")
+  storageKey String           @default("")
+  payload    String           @default("")
+  status     String           @default("uploaded")
+  createdAt  DateTime         @default(now())
+
+  @@index([tenantId])
+  @@index([patientId])
+}

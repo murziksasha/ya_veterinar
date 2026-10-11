@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: vetsync
+      POSTGRES_PASSWORD: vetsync
+      POSTGRES_DB: vetsync
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vetsync -d vetsync"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      target: api
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: postgresql://vetsync_app:vetsync@postgres:5432/vetsync?schema=public
+      DIRECT_URL: postgresql://vetsync:vetsync@postgres:5432/vetsync?schema=public
+      API_PORT: "4000"
+      WEB_ORIGIN: http://localhost:3000
+      SESSION_SECRET: dev-only-change-me
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      target: web
+    ports:
+      - "3000:3000"
+    environment:
+      API_PROXY_TARGET: http://api:4000
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
